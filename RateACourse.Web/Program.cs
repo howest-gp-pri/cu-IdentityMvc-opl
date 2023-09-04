@@ -1,5 +1,7 @@
-using RateACourse.Web.Data;
+using RateACourse.Core.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using RateACourse.Core.Entities;
 
 namespace RateAMovie_opl_Afst
 {
@@ -13,7 +15,19 @@ namespace RateAMovie_opl_Afst
             //Add entity framework database
             builder.Services.AddDbContext<CourseRateDbContext>(
                  options => options.UseSqlServer(builder.Configuration.GetConnectionString("CourseRateDb")));
-
+            //add identity
+            builder.Services.AddIdentity<ApplicationUser,IdentityRole>(options => 
+            {
+                //configure options for testing purposes
+                options.Password.RequiredUniqueChars = 0;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequiredLength = 6;
+            }).AddEntityFrameworkStores<CourseRateDbContext>()
+            .AddDefaultTokenProviders();
+            
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -33,6 +47,18 @@ namespace RateAMovie_opl_Afst
 
             app.UseAuthorization();
 
+            app.MapControllerRoute(
+            name: "AccountAreaRegister",
+            pattern: "Account/Register",
+            defaults: new { Area = "Account", Controller = "Account", Action = "Register" });
+            app.MapControllerRoute(
+            name: "AccountAreaLogin",
+            pattern: "Account/Login",
+            defaults: new { Area = "Account", Controller = "Account", Action = "Login" });
+            app.MapControllerRoute(
+                name: "Areas",
+                pattern: "{area:exists}/{controller=Account}/{action=Index}/{id?}"
+                );
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");

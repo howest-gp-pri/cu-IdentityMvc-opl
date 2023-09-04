@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using RateACourse.Core.Entities;
 using RateACourse.Web.ViewModels;
 using System.Net.Http.Headers;
-using RateACourse.Web.Data;
+using RateACourse.Core.Data;
 
 namespace RateACourse.Web.Controllers
 {

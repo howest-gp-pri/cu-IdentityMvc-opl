@@ -4,10 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
-namespace RateACourse.Web.Data
+namespace RateACourse.Core.Data
 {
-    public class CourseRateDbContext : DbContext
+    public class CourseRateDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<Course> Courses { get; set; }
         public DbSet<Student> Students { get; set; }
