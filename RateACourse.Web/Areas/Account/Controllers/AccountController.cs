@@ -1,7 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using MimeKit;
+using MimeKit.Text;
 using RateACourse.Core.Entities;
+using RateACourse.Core.Services.Interfaces;
+using RateACourse.Core.Services.Models;
 using RateACourse.Web.Areas.Account.ViewModels;
+
 
 namespace RateACourse.Web.Areas.Account.Controllers
 {
@@ -9,10 +17,16 @@ namespace RateACourse.Web.Areas.Account.Controllers
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        
-        public AccountController(UserManager<ApplicationUser> userManager)
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailService _emailService;
+        private readonly IAccountService _accountService;
+
+        public AccountController(UserManager<ApplicationUser> userManager, IEmailService emailService, SignInManager<ApplicationUser> signInManager, IAccountService accountService)
         {
             _userManager = userManager;
+            _emailService = emailService;
+            _signInManager = signInManager;
+            _accountService = accountService;
         }
 
         [HttpGet]
@@ -25,27 +39,29 @@ namespace RateACourse.Web.Areas.Account.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(AccountRegisterViewModel accountRegisterViewModel)
         {
+            //errors from form validation
             if(!ModelState.IsValid)
             {
                 return View(accountRegisterViewModel);
             }
-            if (await _userManager.FindByNameAsync(accountRegisterViewModel.Username) == null)
-            {
-                var user = new ApplicationUser 
-                { 
-                    UserName = accountRegisterViewModel.Username,
+            var result = await _accountService.RegisterAsync(
+                new RequestRegisterModel 
+                {
+                    Username = accountRegisterViewModel.Email,
+                    Password = accountRegisterViewModel.Password,
                     Firstname = accountRegisterViewModel.Firstname,
                     Lastname = accountRegisterViewModel.Lastname,
-                    Email = accountRegisterViewModel.Username,
-                    EmailConfirmed = true
-                };
-                await _userManager.CreateAsync(user,accountRegisterViewModel.Password);
-                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                var result = await _userManager.VerifyUserTokenAsync(user,TokenOptions.DefaultProvider, "EmailConfirmation", token);
-                return RedirectToAction(nameof(Registered));
+                });
+            if (!result.IsSuccess)
+            {
+                //errors from service class
+                foreach(var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error);
+                }
+                return View(accountRegisterViewModel);
             }
-            return RedirectToAction(nameof(Index),"Courses");
-            
+            return RedirectToAction(nameof(Registered));
         }
         [HttpGet]
         public IActionResult Registered()
@@ -53,17 +69,50 @@ namespace RateACourse.Web.Areas.Account.Controllers
             return View();
         }
         [HttpGet]
-        public IActionResult Login()
+        public async Task<IActionResult> Logout()
         {
-            return View();
+            await _accountService.Logout();
+            return RedirectToAction("Login");
         }
         [HttpGet]
-        public async Task<IActionResult> ValidateAccount(string userId,string token)
+        public IActionResult Login()
         {
-            var user = await _userManager.FindByNameAsync(userId);
+            ViewBag.PageTitle = "Log in:";
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(AccountLoginViewModel accountLoginViewModel)
+        {
+            //errors from form validation
+            if (!ModelState.IsValid)
+            {
+                return View(accountLoginViewModel);
+            }
+            var result = await _accountService.LoginAsync(
+                new RequestLoginModel 
+                {
+                    Username = accountLoginViewModel.Email,
+                    Password = accountLoginViewModel.Password,
+                });
+            if(!result.IsSuccess)
+            {
+                //errors from service class
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error);
+                }
+                return View(accountLoginViewModel);
+            }
+            return RedirectToAction("Index",new {Area = "Admin", Controller = "Courses" });
+        }
+        [HttpGet]
+        public async Task<IActionResult> ValidateEmail(string userId,string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
             if(user == null)
             {
-                NotFound();
+                return NotFound();
             }
             if(await _userManager.VerifyUserTokenAsync(user,TokenOptions.DefaultProvider,"EmailConfirmation", token))
             {

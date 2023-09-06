@@ -2,6 +2,8 @@ using RateACourse.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using RateACourse.Core.Entities;
+using RateACourse.Core.Services;
+using RateACourse.Core.Services.Interfaces;
 
 namespace RateAMovie_opl_Afst
 {
@@ -12,8 +14,13 @@ namespace RateAMovie_opl_Afst
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddSingleton<IEmailService, EmailService>();
+            builder.Services.AddTransient<IAccountService, AccountService>();
+            builder.Services.AddTransient<ICourseService, CourseService>();
+            //register HttpContextAccessor
+            builder.Services.AddHttpContextAccessor();
             //Add entity framework database
-            builder.Services.AddDbContext<CourseRateDbContext>(
+            builder.Services.AddDbContext<ApplicationDbContext>(
                  options => options.UseSqlServer(builder.Configuration.GetConnectionString("CourseRateDb")));
             //add identity
             builder.Services.AddIdentity<ApplicationUser,IdentityRole>(options => 
@@ -25,9 +32,9 @@ namespace RateAMovie_opl_Afst
                 options.Password.RequireLowercase = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequiredLength = 6;
-            }).AddEntityFrameworkStores<CourseRateDbContext>()
+                options.SignIn.RequireConfirmedEmail = true;
+            }).AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-            
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();
@@ -44,7 +51,7 @@ namespace RateAMovie_opl_Afst
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
@@ -57,7 +64,7 @@ namespace RateAMovie_opl_Afst
             defaults: new { Area = "Account", Controller = "Account", Action = "Login" });
             app.MapControllerRoute(
                 name: "Areas",
-                pattern: "{area:exists}/{controller=Account}/{action=Index}/{id?}"
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
                 );
             app.MapControllerRoute(
                 name: "default",

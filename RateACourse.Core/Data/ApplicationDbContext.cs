@@ -8,13 +8,12 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace RateACourse.Core.Data
 {
-    public class CourseRateDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public DbSet<Course> Courses { get; set; }
-        public DbSet<Student> Students { get; set; }
         public DbSet<StudentCourseReview> StudentCourseReviews { get; set; }
 
-        public CourseRateDbContext(DbContextOptions<CourseRateDbContext> options) : base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         
         }
@@ -23,16 +22,16 @@ namespace RateACourse.Core.Data
 
             //course table
             modelBuilder.Entity<Course>()
-                .Property(c => c.CourseName)
+                .Property(c => c.Name)
                 .IsRequired()
                 .HasMaxLength(150);
             //student table
-            modelBuilder.Entity<Student>()
-                .Property(s => s.FirstName)
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(s => s.Firstname)
                 .IsRequired()
                 .HasMaxLength(150);
-            modelBuilder.Entity<Student>()
-                .Property(s => s.LastName)
+            modelBuilder.Entity<ApplicationUser>()
+                .Property(s => s.Lastname)
                 .IsRequired()
                 .HasMaxLength(150);
             //configure StudentCourseReview

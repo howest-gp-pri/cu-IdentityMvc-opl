@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace RateACourse.Core.Migrations
 {
-    public partial class Identity : Migration
+    public partial class first : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -28,6 +28,9 @@ namespace RateACourse.Core.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Firstname = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Lastname = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -54,25 +57,11 @@ namespace RateACourse.Core.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CourseName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Students",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    LastName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Students", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -182,25 +171,25 @@ namespace RateACourse.Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CourseStudent",
+                name: "ApplicationUserCourse",
                 columns: table => new
                 {
                     CoursesId = table.Column<long>(type: "bigint", nullable: false),
-                    StudentsId = table.Column<long>(type: "bigint", nullable: false)
+                    StudentsId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CourseStudent", x => new { x.CoursesId, x.StudentsId });
+                    table.PrimaryKey("PK_ApplicationUserCourse", x => new { x.CoursesId, x.StudentsId });
                     table.ForeignKey(
-                        name: "FK_CourseStudent_Courses_CoursesId",
-                        column: x => x.CoursesId,
-                        principalTable: "Courses",
+                        name: "FK_ApplicationUserCourse_AspNetUsers_StudentsId",
+                        column: x => x.StudentsId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CourseStudent_Students_StudentsId",
-                        column: x => x.StudentsId,
-                        principalTable: "Students",
+                        name: "FK_ApplicationUserCourse_Courses_CoursesId",
+                        column: x => x.CoursesId,
+                        principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -209,7 +198,7 @@ namespace RateACourse.Core.Migrations
                 name: "StudentCourseReviews",
                 columns: table => new
                 {
-                    StudentId = table.Column<long>(type: "bigint", nullable: false),
+                    StudentId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CourseId = table.Column<long>(type: "bigint", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: false),
                     ReviewText = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -218,18 +207,23 @@ namespace RateACourse.Core.Migrations
                 {
                     table.PrimaryKey("PK_StudentCourseReviews", x => new { x.CourseId, x.StudentId });
                     table.ForeignKey(
+                        name: "FK_StudentCourseReviews_AspNetUsers_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_StudentCourseReviews_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StudentCourseReviews_Students_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "Students",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUserCourse_StudentsId",
+                table: "ApplicationUserCourse",
+                column: "StudentsId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -271,11 +265,6 @@ namespace RateACourse.Core.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CourseStudent_StudentsId",
-                table: "CourseStudent",
-                column: "StudentsId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_StudentCourseReviews_StudentId",
                 table: "StudentCourseReviews",
                 column: "StudentId");
@@ -283,6 +272,9 @@ namespace RateACourse.Core.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ApplicationUserCourse");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -299,9 +291,6 @@ namespace RateACourse.Core.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "CourseStudent");
-
-            migrationBuilder.DropTable(
                 name: "StudentCourseReviews");
 
             migrationBuilder.DropTable(
@@ -312,9 +301,6 @@ namespace RateACourse.Core.Migrations
 
             migrationBuilder.DropTable(
                 name: "Courses");
-
-            migrationBuilder.DropTable(
-                name: "Students");
         }
     }
 }

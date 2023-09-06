@@ -8,8 +8,8 @@ namespace RateACourse.Core.Entities
 {
     public class Course : BaseEntity
     {
-        public string CourseName { get; set; }
-        public ICollection<Student> Students { get; set; }
+        public string Name { get; set; }
+        public ICollection<ApplicationUser> Students { get; set; }
         public ICollection<StudentCourseReview> Reviews { get; set; }
     }
 }

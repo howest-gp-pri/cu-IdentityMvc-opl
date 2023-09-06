@@ -10,8 +10,8 @@ using RateACourse.Core.Data;
 
 namespace RateACourse.Core.Migrations
 {
-    [DbContext(typeof(CourseRateDbContext))]
-    partial class CourseRateDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ApplicationDbContext))]
+    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -22,19 +22,19 @@ namespace RateACourse.Core.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("CourseStudent", b =>
+            modelBuilder.Entity("ApplicationUserCourse", b =>
                 {
                     b.Property<long>("CoursesId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("StudentsId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("StudentsId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("CoursesId", "StudentsId");
 
                     b.HasIndex("StudentsId");
 
-                    b.ToTable("CourseStudent");
+                    b.ToTable("ApplicationUserCourse");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -193,10 +193,14 @@ namespace RateACourse.Core.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Firstname")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Lastname")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
@@ -252,7 +256,7 @@ namespace RateACourse.Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<string>("CourseName")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
@@ -262,36 +266,13 @@ namespace RateACourse.Core.Migrations
                     b.ToTable("Courses");
                 });
 
-            modelBuilder.Entity("RateACourse.Core.Entities.Student", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Students");
-                });
-
             modelBuilder.Entity("RateACourse.Core.Entities.StudentCourseReview", b =>
                 {
                     b.Property<long>("CourseId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("StudentId")
-                        .HasColumnType("bigint");
+                    b.Property<string>("StudentId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ReviewText")
                         .HasColumnType("nvarchar(max)");
@@ -306,7 +287,7 @@ namespace RateACourse.Core.Migrations
                     b.ToTable("StudentCourseReviews");
                 });
 
-            modelBuilder.Entity("CourseStudent", b =>
+            modelBuilder.Entity("ApplicationUserCourse", b =>
                 {
                     b.HasOne("RateACourse.Core.Entities.Course", null)
                         .WithMany()
@@ -314,7 +295,7 @@ namespace RateACourse.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RateACourse.Core.Entities.Student", null)
+                    b.HasOne("RateACourse.Core.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("StudentsId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -380,7 +361,7 @@ namespace RateACourse.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RateACourse.Core.Entities.Student", "Student")
+                    b.HasOne("RateACourse.Core.Entities.ApplicationUser", "Student")
                         .WithMany("Reviews")
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -391,12 +372,12 @@ namespace RateACourse.Core.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("RateACourse.Core.Entities.Course", b =>
+            modelBuilder.Entity("RateACourse.Core.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("Reviews");
                 });
 
-            modelBuilder.Entity("RateACourse.Core.Entities.Student", b =>
+            modelBuilder.Entity("RateACourse.Core.Entities.Course", b =>
                 {
                     b.Navigation("Reviews");
                 });
