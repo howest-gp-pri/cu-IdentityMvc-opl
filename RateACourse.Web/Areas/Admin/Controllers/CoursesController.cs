@@ -13,6 +13,7 @@ using RateACourse.Web.Areas.Account.ViewModels;
 using RateACourse.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using RateACourse.Core.Services.Interfaces;
+using RateACourse.Core.Extensions;
 
 namespace RateACourse.Web.Areas.Admin.Controllers
 {
@@ -77,29 +78,30 @@ namespace RateACourse.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                var course = new Course
+                var result = await _courseService
+                    .CreateAsync(coursesCreateViewModel.Name);
+                if(!result.IsSuccess)
                 {
-                    Name = coursesCreateViewModel.Name,
-                };
-                applicationDbContext.Add(course);
-                await applicationDbContext.SaveChangesAsync();
+                    ModelState.AddCustomModelErrors(result.Errors);
+                    return View(coursesCreateViewModel);
+                }
                 return RedirectToAction(nameof(Index));
             }
             return View(coursesCreateViewModel);
         }
 
         // GET: Courses/Edit/5
-        public async Task<IActionResult> Edit(long? id)
+        public async Task<IActionResult> Edit(long id)
         {
-            var course = await applicationDbContext.Courses.FindAsync(id);
-            if (course == null)
+            var result = await _courseService.GetByIdAsync(id);
+            if(!result.IsSuccess)
             {
                 return NotFound();
             }
             var coursesEditViewModel = new CoursesEditViewModel
             {
-                Id = course.Id,
-                Name = course.Name,
+                Id = result.Items.First().Id,
+                Name = result.Items.First().Name,
             };
             return View(coursesEditViewModel);
         }
@@ -110,22 +112,16 @@ namespace RateACourse.Web.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                var course = await applicationDbContext
-                        .Courses
-                        .FirstOrDefaultAsync(c => c.Id == coursesEditViewModel.Id);
-                if (course == null)
+                var result = await _courseService.GetByIdAsync(coursesEditViewModel.Id);
+                if(!result.IsSuccess)
                 {
                     return NotFound();
                 }
-                course.Name = coursesEditViewModel.Name;
-                try
+                result = await _courseService.UpdateAsync(coursesEditViewModel.Id, coursesEditViewModel.Name);
+                if(!result.IsSuccess)
                 {
-                    applicationDbContext.Update(course);
-                    await applicationDbContext.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException dbUpdateException)
-                {
-                    Console.WriteLine(dbUpdateException.Message);
+                    ModelState.AddCustomModelErrors(result.Errors);
+                    return View(coursesEditViewModel);
                 }
                 return RedirectToAction(nameof(Index));
             }
@@ -135,16 +131,15 @@ namespace RateACourse.Web.Areas.Admin.Controllers
         // GET: Courses/Delete/5
         public async Task<IActionResult> ConfirmDelete(long id)
         {
-            var course = await applicationDbContext.Courses
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (course == null)
+            var result = await _courseService.GetByIdAsync(id);
+            if (!result.IsSuccess)
             {
                 return NotFound();
             }
             var coursesDeleteViewModel = new CoursesDeleteViewModel
             {
-                Id = course.Id,
-                Name = course.Name,
+                Id = result.Items.First().Id,
+                Name = result.Items.First().Name,
             };
             return View(coursesDeleteViewModel);
         }
