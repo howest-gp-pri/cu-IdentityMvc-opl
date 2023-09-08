@@ -84,28 +84,44 @@ namespace RateACourse.Web.Areas.Account.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(AccountLoginViewModel accountLoginViewModel)
         {
-            //errors from form validation
             if (!ModelState.IsValid)
             {
                 return View(accountLoginViewModel);
             }
-            var result = await _accountService.LoginAsync(
-                new RequestLoginModel 
-                {
-                    Username = accountLoginViewModel.Email,
-                    Password = accountLoginViewModel.Password,
-                });
-            if(!result.IsSuccess)
+            var result = await _signInManager.PasswordSignInAsync(accountLoginViewModel.Email, accountLoginViewModel.Password, false, true);
+            if (!result.Succeeded)
             {
-                //errors from service class
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError("", error);
-                }
+                ModelState.AddModelError("", "Wrong credentials!");
                 return View(accountLoginViewModel);
             }
-            return RedirectToAction("Index",new {Area = "Admin", Controller = "Courses" });
+            return RedirectToAction("Index", new { Area = "Admin", Controller = "Courses" });
         }
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Login(AccountLoginViewModel accountLoginViewModel)
+        //{
+        //    //errors from form validation
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return View(accountLoginViewModel);
+        //    }
+        //    var result = await _accountService.LoginAsync(
+        //        new RequestLoginModel 
+        //        {
+        //            Username = accountLoginViewModel.Email,
+        //            Password = accountLoginViewModel.Password,
+        //        });
+        //    if(!result.IsSuccess)
+        //    {
+        //        //errors from service class
+        //        foreach (var error in result.Errors)
+        //        {
+        //            ModelState.AddModelError("", error);
+        //        }
+        //        return View(accountLoginViewModel);
+        //    }
+        //    return RedirectToAction("Index",new {Area = "Admin", Controller = "Courses" });
+        //}
         [HttpGet]
         public async Task<IActionResult> ValidateEmail(string userId,string token)
         {
