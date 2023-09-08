@@ -4,8 +4,6 @@ namespace RateACourse.Web.Models
 {
     public class ErrorViewModel
     {
-        public string RequestId { get; set; }
-
-        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+        public IEnumerable<string> Errors { get; set; }
     }
 }

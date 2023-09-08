@@ -20,6 +20,11 @@ namespace RateACourse.Core.Services
             _applicationDbContext = applicationDbContext;
         }
 
+        public async Task<bool> CheckIfExistsAsync(long id)
+        {
+            return await _applicationDbContext.Courses.AnyAsync(c => c.Id == id);
+        }
+
         public async Task<CourseServiceResultModel<Course>> CreateAsync(string name)
         {
             if(await _applicationDbContext.Courses.AnyAsync(c => c.Name.ToUpper().Equals(name.ToUpper())))

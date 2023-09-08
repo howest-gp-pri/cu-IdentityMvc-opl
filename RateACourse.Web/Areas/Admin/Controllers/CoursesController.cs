@@ -14,6 +14,7 @@ using RateACourse.Web.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using RateACourse.Core.Services.Interfaces;
 using RateACourse.Core.Extensions;
+using RateACourse.Web.Models;
 
 namespace RateACourse.Web.Areas.Admin.Controllers
 {
@@ -148,18 +149,16 @@ namespace RateACourse.Web.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(long id)
         {
-            var course = await applicationDbContext.Courses.FindAsync(id);
-            if (course != null)
+            if(!await _courseService.CheckIfExistsAsync(id))
             {
-                applicationDbContext.Courses.Remove(course);
+                return NotFound(); 
             }
-            await applicationDbContext.SaveChangesAsync();
+            var result = await _courseService.DeleteAsync(id);
+            if(!result.IsSuccess)
+            {
+                return View("Error",new ErrorViewModel { Errors = result.Errors});
+            }
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool CourseExists(long id)
-        {
-            return applicationDbContext.Courses.Any(e => e.Id == id);
         }
     }
 }

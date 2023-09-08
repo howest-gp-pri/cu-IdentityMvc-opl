@@ -16,5 +16,6 @@ namespace RateACourse.Core.Services.Interfaces
         Task<CourseServiceResultModel<Course>> UpdateAsync(long id, string name);
         Task<CourseServiceResultModel<Course>> CreateAsync(string name);
         Task<CourseServiceResultModel<Course>> RateAsync(RequestRateCourseModel requestRateCourseModel);
+        Task<bool> CheckIfExistsAsync(long id);
     }
 }
