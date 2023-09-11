@@ -31,6 +31,11 @@ namespace RateAMovie_opl_Afst
                 options.SignIn.RequireConfirmedEmail = true;
             }).AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+            //set path for AccessDenied
+            builder.Services.ConfigureApplicationCookie(options =>
+
+            options.AccessDeniedPath = "/account/account/AccesDenied"
+            );
             builder.Services.AddControllersWithViews();
 
             var app = builder.Build();

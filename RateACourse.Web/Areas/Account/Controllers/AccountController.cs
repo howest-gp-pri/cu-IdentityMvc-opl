@@ -130,5 +130,10 @@ namespace RateACourse.Web.Areas.Account.Controllers
             }
             return View();
         }
+        [HttpGet]
+        public IActionResult AccesDenied()
+        {
+            return View();
+        }
     }
 }
