@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace RateACourse.Web.Areas.Admin.ViewModels
+namespace RateACourse.Web.ViewModels
 {
     public class CoursesEditViewModel : CoursesCreateViewModel
     {

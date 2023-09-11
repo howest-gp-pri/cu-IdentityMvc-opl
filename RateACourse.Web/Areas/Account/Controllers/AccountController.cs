@@ -2,12 +2,9 @@
 using MailKit.Security;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MimeKit;
 using MimeKit.Text;
 using RateACourse.Core.Entities;
-using RateACourse.Core.Services.Interfaces;
-using RateACourse.Core.Services.Models;
 using RateACourse.Web.Areas.Account.ViewModels;
 
 
@@ -18,15 +15,17 @@ namespace RateACourse.Web.Areas.Account.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly IEmailService _emailService;
-        private readonly IAccountService _accountService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly LinkGenerator _linkGenerator;
 
-        public AccountController(UserManager<ApplicationUser> userManager, IEmailService emailService, SignInManager<ApplicationUser> signInManager, IAccountService accountService)
+        public AccountController(UserManager<ApplicationUser> userManager, 
+            SignInManager<ApplicationUser> signInManager,
+            IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator)
         {
             _userManager = userManager;
-            _emailService = emailService;
             _signInManager = signInManager;
-            _accountService = accountService;
+            _httpContextAccessor = httpContextAccessor;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -40,28 +39,49 @@ namespace RateACourse.Web.Areas.Account.Controllers
         public async Task<IActionResult> Register(AccountRegisterViewModel accountRegisterViewModel)
         {
             //errors from form validation
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 return View(accountRegisterViewModel);
             }
-            var result = await _accountService.RegisterAsync(
-                new RequestRegisterModel 
+            if (await _userManager.FindByNameAsync(accountRegisterViewModel.Email) == null)
+            {
+                var user = new ApplicationUser
                 {
-                    Username = accountRegisterViewModel.Email,
-                    Password = accountRegisterViewModel.Password,
+                    UserName = accountRegisterViewModel.Email,
                     Firstname = accountRegisterViewModel.Firstname,
                     Lastname = accountRegisterViewModel.Lastname,
-                });
-            if (!result.IsSuccess)
-            {
-                //errors from service class
-                foreach(var error in result.Errors)
+                    Email = accountRegisterViewModel.Email,
+                    EmailConfirmed = false
+                };
+                await _userManager.CreateAsync(user, accountRegisterViewModel.Password);
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = _linkGenerator.GetUriByAction
+                    (
+                        action: "ValidateEmail",
+                        controller: "Account",
+                        scheme: _httpContextAccessor.HttpContext.Request.Scheme,
+                        host: _httpContextAccessor.HttpContext.Request.Host,
+                        values: new { Area = "Account", userId = user.Id, token = token }
+                    );
+                var email = new MimeMessage();
+                email.From.Add(MailboxAddress.Parse("admin@rateACourse.com"));
+                email.To.Add(MailboxAddress.Parse(user.Email));
+                email.Subject = "Confirm your emailaddress";
+                email.Body = new TextPart(TextFormat.Html)
                 {
-                    ModelState.AddModelError("", error);
-                }
-                return View(accountRegisterViewModel);
+                    Text = $"<h5>Please confirm your emailadress</h5>" +
+                           $"<p>Please confirm your emailadress by clicking " +
+                           $"<a href='{confirmationLink}'>here</a>",
+                };
+                using var smtpClient = new SmtpClient();
+                await smtpClient.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
+                await smtpClient.AuthenticateAsync("gradProgPriTest@gmail.com", "owjxlealkiucmsbu");
+                var result = await smtpClient.SendAsync(email);
+                await smtpClient.DisconnectAsync(true);
+                return RedirectToAction(nameof(Registered));
             }
-            return RedirectToAction(nameof(Registered));
+            ModelState.AddModelError("Email", "This email is already taken!");
+            return View(accountRegisterViewModel);
         }
         [HttpGet]
         public IActionResult Registered()
@@ -71,7 +91,7 @@ namespace RateACourse.Web.Areas.Account.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
-            await _accountService.Logout();
+            await _signInManager.SignOutAsync();
             return RedirectToAction("Login");
         }
         [HttpGet]
@@ -94,34 +114,8 @@ namespace RateACourse.Web.Areas.Account.Controllers
                 ModelState.AddModelError("", "Wrong credentials!");
                 return View(accountLoginViewModel);
             }
-            return RedirectToAction("Index", new { Area = "Admin", Controller = "Courses" });
+            return RedirectToAction("Index","Courses", new { Area = "" });
         }
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Login(AccountLoginViewModel accountLoginViewModel)
-        //{
-        //    //errors from form validation
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return View(accountLoginViewModel);
-        //    }
-        //    var result = await _accountService.LoginAsync(
-        //        new RequestLoginModel 
-        //        {
-        //            Username = accountLoginViewModel.Email,
-        //            Password = accountLoginViewModel.Password,
-        //        });
-        //    if(!result.IsSuccess)
-        //    {
-        //        //errors from service class
-        //        foreach (var error in result.Errors)
-        //        {
-        //            ModelState.AddModelError("", error);
-        //        }
-        //        return View(accountLoginViewModel);
-        //    }
-        //    return RedirectToAction("Index",new {Area = "Admin", Controller = "Courses" });
-        //}
         [HttpGet]
         public async Task<IActionResult> ValidateEmail(string userId,string token)
         {

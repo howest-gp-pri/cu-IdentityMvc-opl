@@ -2,8 +2,7 @@ using RateACourse.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using RateACourse.Core.Entities;
-using RateACourse.Core.Services;
-using RateACourse.Core.Services.Interfaces;
+
 
 namespace RateAMovie_opl_Afst
 {
@@ -14,9 +13,6 @@ namespace RateAMovie_opl_Afst
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-            builder.Services.AddSingleton<IEmailService, EmailService>();
-            builder.Services.AddTransient<IAccountService, AccountService>();
-            builder.Services.AddTransient<ICourseService, CourseService>();
             //register HttpContextAccessor
             builder.Services.AddHttpContextAccessor();
             //Add entity framework database

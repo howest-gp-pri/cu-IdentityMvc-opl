@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace RateACourse.Web.Areas.Admin.ViewModels
+namespace RateACourse.Web.ViewModels
 {
     public class CoursesCreateViewModel
     {
