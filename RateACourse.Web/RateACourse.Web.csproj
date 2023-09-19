@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <RootNamespace>RateACourse.Web</RootNamespace>
+    <UserSecretsId>4083092e-9dfa-4076-b96e-c03279ffb3cf</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

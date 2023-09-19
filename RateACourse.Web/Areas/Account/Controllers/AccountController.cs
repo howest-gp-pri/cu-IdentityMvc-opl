@@ -17,15 +17,17 @@ namespace RateACourse.Web.Areas.Account.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly LinkGenerator _linkGenerator;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(UserManager<ApplicationUser> userManager, 
+        public AccountController(UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator)
+            IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _httpContextAccessor = httpContextAccessor;
             _linkGenerator = linkGenerator;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -64,7 +66,7 @@ namespace RateACourse.Web.Areas.Account.Controllers
                         values: new { Area = "Account", userId = user.Id, token = token }
                     );
                 var email = new MimeMessage();
-                email.From.Add(MailboxAddress.Parse("admin@rateACourse.com"));
+                email.From.Add(MailboxAddress.Parse(_configuration["Email:Account"]));
                 email.To.Add(MailboxAddress.Parse(user.Email));
                 email.Subject = "Confirm your emailaddress";
                 email.Body = new TextPart(TextFormat.Html)
@@ -74,8 +76,9 @@ namespace RateACourse.Web.Areas.Account.Controllers
                            $"<a href='{confirmationLink}'>here</a>",
                 };
                 using var smtpClient = new SmtpClient();
-                await smtpClient.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-                await smtpClient.AuthenticateAsync("gradProgPriTest@gmail.com", "owjxlealkiucmsbu");
+                smtpClient.CheckCertificateRevocation = false;
+                await smtpClient.ConnectAsync("smtp.gmail.com", 465, SecureSocketOptions.SslOnConnect);
+                await smtpClient.AuthenticateAsync(_configuration["Email:Account"], _configuration["Email:ApiKey"]);
                 var result = await smtpClient.SendAsync(email);
                 await smtpClient.DisconnectAsync(true);
                 return RedirectToAction(nameof(Registered));
