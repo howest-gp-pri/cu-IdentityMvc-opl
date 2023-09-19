@@ -1,0 +1,14 @@
+﻿@model UsersAddRoleViewModel
+
+<div class="row">
+    <div class="col col-lg-4 mx-auto">
+        <form asp-area="Account"asp-controller="Users" asp-action="AddRole" method="post">
+            <div class="form-group">
+                <label asp-for="RoleId"></label>
+                <select asp-for="RoleId" asp-items="@Model.Roles" class="custom-select"></select>
+            </div>
+            <input asp-for="Id" />
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>

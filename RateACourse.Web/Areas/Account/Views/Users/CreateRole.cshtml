@@ -1,0 +1,38 @@
+﻿@model UsersCreateRoleViewModel
+<div class="row">
+    <div class="col col-lg-5 mx-auto">
+        <h4>Add role</h4>
+        <form Area="Account" asp-controller="Users" asp-action="CreateRole" method="post">
+            <div class="form-group">
+                <label asp-for="Role"></label>
+                <input asp-for="Role" class="form-control">
+                <span asp-validation-for="Role" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+    </div>
+</div>
+<div class="row">
+    <div class="col col-lg-5 mx-auto">
+        <h4>Roles</h4>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Roles</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var role in Model.Roles)
+                { 
+                    <tr>
+                        <td>@role</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+

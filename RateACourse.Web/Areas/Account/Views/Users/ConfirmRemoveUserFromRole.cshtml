@@ -1,0 +1,10 @@
+﻿@model UsersRemoveUserFromRoleViewModel
+<form asp-area="Account" asp-controller="Users" asp-action="RemoveUserFromRole" method="post">
+    <div class="alert alert-primary" role="alert">
+        Remove user from role?
+    </div>
+    <a asp-controller="Users" asp-action="Index" class="btn btn-outline-primary">No</a>
+    <input asp-for="UserId" />
+    <input asp-for="RoleId" />
+    <button type="submit" class="btn btn-outline-danger">Yes</button>
+</form>

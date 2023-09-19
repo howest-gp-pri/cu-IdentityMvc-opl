@@ -63,6 +63,7 @@ namespace RateAMovie_opl_Afst
             name: "AccountAreaLogin",
             pattern: "Account/Login",
             defaults: new { Area = "Account", Controller = "Account", Action = "Login" });
+            
             app.MapControllerRoute(
                 name: "Areas",
                 pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"

@@ -1,0 +1,44 @@
+﻿@model UsersIndexViewModel
+<div class="row">
+    <div class="col col-lg-10 mx-auto">
+        <a asp-area="Account"
+           asp-controller="Users"
+           asp-action="CreateRole"
+           class="btn btn-outline-info mb-2">New role</a>
+        <table class="table table-hover table-responsive-lg">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Roles</th>
+                    <th>Add to role</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var user in Model.Users)
+                { 
+                    <tr>
+                        <td>@user.Name</td>
+                        <td>
+                            @foreach(var role in user.Roles)
+                            { 
+                               <div> @role <a asp-area="Account"
+                                         asp-controller="Users"
+                                         asp-action="ConfirmRemoveUserFromRole"
+                                         asp-route-id="@user.Id"
+                                         asp-route-role="role"
+                                         class="alert-link">Remove</a></div>
+                            }
+                        </td>
+                        <td>
+                            <a asp-area="Account"
+                                     asp-controller="Users"
+                                     asp-action="AddRole"
+                                     asp-route-id="@user.Id"
+                                     class="btn btn-outline-info">Add to role</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
