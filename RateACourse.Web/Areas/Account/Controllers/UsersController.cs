@@ -114,6 +114,8 @@ namespace RateACourse.Web.Areas.Account.Controllers
         public IActionResult ConfirmRemoveUserFromRole(string userId,string roleId)
         {
             UsersRemoveUserFromRoleViewModel usersRemoveUserFromRoleViewModel = new();
+            usersRemoveUserFromRoleViewModel.RoleId = roleId;
+            usersRemoveUserFromRoleViewModel.UserId = userId;
 
             return View(usersRemoveUserFromRoleViewModel);
         }
@@ -122,13 +124,13 @@ namespace RateACourse.Web.Areas.Account.Controllers
         public async Task<IActionResult> RemoveUserFromRole(UsersRemoveUserFromRoleViewModel usersRemoveUserFromRoleViewModel)
         {
             var user = await _userManager.FindByIdAsync(usersRemoveUserFromRoleViewModel.UserId);
-            var role = await _roleManager.FindByIdAsync(usersRemoveUserFromRoleViewModel.RoleId);
+            var role = await _roleManager.FindByNameAsync(usersRemoveUserFromRoleViewModel.RoleId);
             if(user == null || role == null)
             {
                 return NotFound();
             }
             await _userManager.RemoveFromRoleAsync(user, role.Name);
-            return View("Index");
+            return RedirectToAction("Index");
         }
     }
 }
